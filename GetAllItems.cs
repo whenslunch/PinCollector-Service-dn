@@ -34,14 +34,15 @@ namespace PinCollector.GetAllItems
     
     public class PinItem
     {
-        public string Image { get; set; }
+        public string ItemNumber;  // this is the rowkey
         public string Country { get; set; }
         public string City { get; set; }
 
     }
     public class CollectionsTableEntity : TableEntity
     {
-        public string Image { get; set; }
+        // this is inherited from TableEntity, so don't need to define it
+        // public string RowKey { get; set; }  
         public string Country { get; set; }
         public string City { get; set; }
     }
@@ -55,17 +56,17 @@ namespace PinCollector.GetAllItems
                 PartitionKey = "tzelin-hrcpin",
                 Country = pinitem.Country,
                 City = pinitem.City,
-                Image = pinitem.Image
+                
             };
         }
 
-        public static PinItem ToPinItem( this CollectionsTableEntity pinitem)
+        public static PinItem ToPinItem( this CollectionsTableEntity itemtable)
         {
             return new PinItem()
             {
-                Country = pinitem.Country,
-                City = pinitem.City,
-                Image = pinitem.Image
+                Country = itemtable.Country,
+                City = itemtable.City,
+                ItemNumber = itemtable.RowKey,
             };
         }
     }
