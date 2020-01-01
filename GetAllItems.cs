@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Microsoft.WindowsAzure.Storage.Table;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace PinCollector.GetAllItems
 {
@@ -23,8 +24,12 @@ namespace PinCollector.GetAllItems
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
 
+
             TableQuery<CollectionsTableEntity> query = new TableQuery<CollectionsTableEntity>();
             TableQuerySegment<CollectionsTableEntity> segment = await collectionsTable.ExecuteQuerySegmentedAsync(query, null);
+
+            List<CollectionsTableEntity> tablelist =  segment.ToList();
+            log.LogInformation("Counted: " + tablelist.Count() );
 
             // transform the objects returned so they only have the relevant fields
             // TODO: error condition
