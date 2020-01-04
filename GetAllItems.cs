@@ -39,7 +39,7 @@ namespace PinCollector.GetAllItems
     
     public class PinItem
     {
-        public string ItemNumber;  // this is the rowkey
+        public string ItemId;  // this is the rowkey
         public string Country { get; set; }
         public string City { get; set; }
 
@@ -71,7 +71,7 @@ namespace PinCollector.GetAllItems
             {
                 Country = itemtable.Country,
                 City = itemtable.City,
-                ItemNumber = itemtable.RowKey,
+                ItemId = itemtable.RowKey,
             };
         }
     }

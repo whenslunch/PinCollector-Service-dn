@@ -6,7 +6,6 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Gif;
@@ -15,10 +14,12 @@ using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
+using Microsoft.WindowsAzure.Storage.Table;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage;
 
 namespace PinCollector.CreateItem
 {
@@ -57,11 +58,29 @@ namespace PinCollector.CreateItem
             return encoder;
         }
 
+        public class PinItem
+        {
+            public string ItemId;  // this is the rowkey
+            public string Country { get; set; }
+            public string City { get; set; }
+
+        }
+        public class CollectionsTableEntity : TableEntity
+        {
+            // this is inherited from TableEntity, so don't need to define it
+            // public string RowKey { get; set; }  
+            public string Country { get; set; }
+            public string City { get; set; }
+        }
+
+
+
         [FunctionName("CreateItem")]
         public static HttpResponseMessage Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req,
-            ILogger log)
-        {
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req, ILogger log,
+            [Table("Collections")] CloudTable collectionsTable
+            )
+            {
             log.LogInformation("CreateItem function invoked");
 
             //
@@ -78,7 +97,7 @@ namespace PinCollector.CreateItem
             // --------------------------------------------------------
             //
 
-            
+
             // if there's more than one image, then there's a problem
             if (reqCollection.Files.Count != 1 )
             {
@@ -124,11 +143,7 @@ namespace PinCollector.CreateItem
                 }
             }
 
-            // string city, country;
-            // dict.TryGetValue("city", out city);
-            // dict.TryGetValue("country", out country);
-            // log.LogInformation($"[CreateItem] Request: {city}, {country}" );
-
+            
             //
             // Do the image resize
             // -------------------
@@ -152,11 +167,11 @@ namespace PinCollector.CreateItem
                     img.Save(output, encoder);
                     output.Position = 0;
                     
-                    byte[] outputba = output.ToArray();
-                    response.Content = new ByteArrayContent(outputba);
-                    response.Content.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
+                    byte[] outputbytearray = output.ToArray();
+                    //response.Content = new ByteArrayContent(outputba);
+                    //response.Content.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
                     
-                    return response;
+                    //return response;
 
                 }
             }
@@ -173,13 +188,38 @@ namespace PinCollector.CreateItem
             // -----------------------------------------------
             // - Generate GUID for the image as rowKey
 
+            Guid guid = Guid.NewGuid();
+            string textguid = guid.ToString();
+
+            string city, country;
+            dict.TryGetValue("city", out city);
+            dict.TryGetValue("country", out country);
+            log.LogInformation($"[CreateItem] Writing: {textguid}, {city}, {country}" );
+
+            CollectionsTableEntity newItem = new CollectionsTableEntity();
+            newItem.PartitionKey = "tzelin-hrcpin";
+            newItem.City = city;
+            newItem.Country = country;
+            newItem.RowKey = textguid;
+
+            try
+            {
+                var insertOp = TableOperation.Insert(newItem);
+                collectionsTable.ExecuteAsync(insertOp);
+
+            }
+            catch (Exception ExceptionObj)
+            {   
+                throw ExceptionObj;
+            }
+            
 
             // 
             // Save the full-size image to blob container pinimage
             // ----------------------------------------------
             // - Use the GUID as the filename
 
-
+            
 
             // 
             // Save the thumbnail to blob container pinthumb
@@ -187,7 +227,7 @@ namespace PinCollector.CreateItem
             // - Use the GUID+"-thumb" as the filename
 
 
-            
+            return response;
 
             
         }
