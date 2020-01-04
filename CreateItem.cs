@@ -63,11 +63,22 @@ namespace PinCollector.CreateItem
             ILogger log)
         {
             log.LogInformation("CreateItem function invoked");
-            
+
+            //
+            // Declare variables
+            // ------------------------------------
+            //
+                        
             FormCollection reqCollection = (FormCollection) req.Form; 
             Dictionary<string, string> dict = new Dictionary<string, string>();
             var response = new HttpResponseMessage();
 
+            //
+            // Check for request validity, if not exit immediately
+            // --------------------------------------------------------
+            //
+
+            
             // if there's more than one image, then there's a problem
             if (reqCollection.Files.Count != 1 )
             {
@@ -118,6 +129,11 @@ namespace PinCollector.CreateItem
             // dict.TryGetValue("country", out country);
             // log.LogInformation($"[CreateItem] Request: {city}, {country}" );
 
+            //
+            // Do the image resize
+            // -------------------
+            //
+
             var filename = reqCollection.Files[0].FileName;
             var extension = Path.GetExtension(filename);
             var encoder = GetEncoder(extension);
@@ -151,6 +167,28 @@ namespace PinCollector.CreateItem
             
                 return response;
             }
+
+            //
+            // Create a new entry in Collections table
+            // -----------------------------------------------
+            // - Generate GUID for the image as rowKey
+
+
+            // 
+            // Save the full-size image to blob container pinimage
+            // ----------------------------------------------
+            // - Use the GUID as the filename
+
+
+
+            // 
+            // Save the thumbnail to blob container pinthumb
+            // ----------------------------------------------
+            // - Use the GUID+"-thumb" as the filename
+
+
+            
+
             
         }
     }
