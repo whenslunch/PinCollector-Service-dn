@@ -68,10 +68,7 @@ namespace PinCollector.CreateItem
             log.LogInformation($"Uploading full size image of {pitem.id}.");
 
             
-            //CloudStorageAccount storageAccount = CloudStorageAccount.Parse(ConfigurationManager.ConnectionStrings[""]);
-            // TODO get this into a Connection String Setting or App Setting
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse("BlobEndpoint=https://collectionsappsa.blob.core.windows.net/;QueueEndpoint=https://collectionsappsa.queue.core.windows.net/;FileEndpoint=https://collectionsappsa.file.core.windows.net/;TableEndpoint=https://collectionsappsa.table.core.windows.net/;SharedAccessSignature=sv=2019-02-02&ss=bfqt&srt=sco&sp=rwdlacup&se=2021-01-06T12:14:15Z&st=2020-01-06T04:14:15Z&spr=https&sig=PjeOkJTFqmslb7V%2B6nn6TYiGQ4E0Y7b%2F%2BcUytGZbzm4%3D");
-            
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(Environment.GetEnvironmentVariable("collectionsConnectionString"));
             CloudBlobClient client = storageAccount.CreateCloudBlobClient();
             CloudBlobContainer container = client.GetContainerReference("pinimages");
 
