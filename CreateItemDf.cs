@@ -51,7 +51,7 @@ namespace PinCollector.CreateItem
             log.LogInformation($"Going to create a new entry of {pitem.id}, {pitem.city}, {pitem.country}.");
 
             CollectionsTableEntity collectionTableItem = new CollectionsTableEntity(){
-                PartitionKey = "tzelin-hrcpin",
+                PartitionKey = "tzelin-hrcpin",   // TODO: get into an env variable 
                 RowKey = pitem.id,
                 City = pitem.city,
                 Country = pitem.country
@@ -60,7 +60,7 @@ namespace PinCollector.CreateItem
             TableOperation tableOp = TableOperation.Insert(collectionTableItem);
             collectionsTable.ExecuteAsync(tableOp);
             
-            return $"Hello new pin!";
+            return "Hello new pin!";
         }
 
         [FunctionName("CreateItemDf_UploadFullSizeImage")]
@@ -77,7 +77,7 @@ namespace PinCollector.CreateItem
             { 
                 log.LogInformation("Found Blob Container.");
 
-                // Get the file extension.
+                // Extract the file extension
                 string fileExt = pitem.imgtype.Split('/')[1];
                 string fileName = pitem.id + "." + fileExt;
 
@@ -88,8 +88,6 @@ namespace PinCollector.CreateItem
                // Upload the file
                 await blob.UploadFromByteArrayAsync(pitem.image, 0, pitem.image.Length);    
             } 
-
-
 
             return $"Hello {pitem.id} new image!";
         }
@@ -183,7 +181,7 @@ namespace PinCollector.CreateItem
         }
 
 
-        // This class is the actual Table Entity we use for the Azure Storage Table insert.
+        // This class is the  Table Entity used for the Azure Storage Table insert.
         public class CollectionsTableEntity : TableEntity
         {
             // this is inherited from TableEntity, so don't need to define it
